@@ -1,0 +1,64 @@
+import { createSystem, defaultConfig } from "@chakra-ui/react";
+
+const config = {
+  preflight: false,
+  strictTokens: true,
+  theme: {
+    tokens: {
+      colors: {
+        primary: {
+          value: "#0f0fee",
+        },
+        "primary-dark": {
+          value: "#0ACC0A",
+        },
+        "primary-muted": {
+          value: "#DFFFD7",
+        },
+        secondary: {
+          value: "#EE0F0F",
+        },
+        danger: {
+          value: "#FF4B4B",
+        },
+        success: {
+          value: "#4BFF4B",
+        },
+        warning: {
+          value: "#FFCC00",
+        },
+        surface: {
+          value: "#F4F4F4",
+        },
+        "surface-hover": {
+          value: "#EAEAEA",
+        },
+        "text-default": {
+          value: "#1A1A1A",
+        },
+        "text-muted": {
+          value: "#666666",
+        },
+        border: {
+          value: "#CCCCCC",
+        },
+        overlay: {
+          value: "rgba(0, 0, 0, 0.5)",
+        },
+      },
+      fonts: {
+        body: {
+          value: "Inter, sans-serif",
+        },
+        heading: {
+          value: "Space Grotesk, sans-serif",
+        },
+        mono: {
+          value: "Fira Code, monospace",
+        },
+      },
+    },
+  },
+};
+
+export const system = createSystem(defaultConfig, config);
