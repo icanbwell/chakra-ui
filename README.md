@@ -1,54 +1,134 @@
-# React + TypeScript + Vite
+# Chakra UI: Generate Theme from tokens.json
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This guide explains how to use a custom script to generate a Chakra UI theme from a `tokens.json` file, enabling token-driven theming in a scalable design system setup.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🧾 Overview
 
-## Expanding the ESLint configuration
+We will use a Node.js script (`generate-theme.js`) to convert a design tokens JSON file (exported from Figma Tokens plugin or custom source) into a usable Chakra UI `theme.ts`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📁 File Structure
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+libs/
+├── chakra-ui/
+│   ├── scripts/
+│   │   └── generate-theme.js
+│   └── theme/
+│       └── index.ts (generated)
+tokens.json
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🧰 Prerequisites
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Install required packages:
+
+```bash
+npm install ts-node fs path
 ```
+
+---
+
+## 🔧 Step 1: tokens.json Format
+
+```json
+{
+  "themes": {
+    "default": {
+      "colors": {
+        "primary": "#FF0000",
+        "background": "#F0F0F0"
+      },
+      "fontSize": {
+        "sm": "12px",
+        "md": "16px",
+        "lg": "24px"
+      },
+      "fontFamily": {
+        "heading": "'Inter', sans-serif",
+        "body": "'Roboto', sans-serif"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🔁 Step 2: Chakra Theme Generator Script
+
+**File**: `libs/chakra-ui/scripts/generate-theme.js`
+
+```ts
+import fs from "fs";
+import path from "path";
+
+const tokens = JSON.parse(fs.readFileSync("tokens.json", "utf8"));
+const theme = tokens.themes.default;
+
+const chakraTheme = {
+  colors: theme.colors || {},
+  fontSizes: theme.fontSize || {},
+  fonts: theme.fontFamily || {},
+};
+
+const outputPath = path.join(__dirname, "../theme/index.ts");
+
+const fileContent = `
+import { extendTheme } from '@chakra-ui/react';
+
+export const theme = extendTheme(${JSON.stringify(chakraTheme, null, 2)});
+`;
+
+fs.writeFileSync(outputPath, fileContent);
+console.log("✅ Chakra theme generated at libs/chakra-ui/theme/index.ts");
+```
+
+---
+
+## 📦 Step 3: Add NPM Script
+
+**package.json**:
+
+```json
+{
+  "scripts": {
+    "generate:chakra": "ts-node libs/chakra-ui/scripts/generate-theme.js"
+  }
+}
+```
+
+Now run:
+
+```bash
+npm run generate:chakra
+```
+
+This creates `libs/chakra-ui/theme/index.ts` containing the Chakra-compatible theme.
+
+---
+
+## 🧪 Step 4: Use in ChakraProvider
+
+```tsx
+// main.tsx or App.tsx
+import { ChakraProvider } from "@chakra-ui/react";
+import { theme } from "libs/chakra-ui/theme";
+
+<ChakraProvider theme={theme}>
+  <App />
+</ChakraProvider>;
+```
+
+---
+
+## ✅ Benefits
+
+- Token-driven Chakra theme
+- Easy integration with Figma Tokens
+- Automates conversion & prevents manual errors
+
+---
